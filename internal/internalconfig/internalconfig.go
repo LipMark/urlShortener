@@ -1,15 +1,16 @@
 package internal
 
 import (
+	"encoding/json"
 	"log"
 	"os"
 	"time"
 
-	"github.com/LipMark/url-shortener/util"
+	"urlShortener/util"
 )
 
 type Config struct {
-	Env         string `yaml:"env" env-default:"prod" env-required:"true"`
+	Env         string `yaml:"env" env-default:"local" env-required:"true"`
 	StoragePath string `yaml:"storage_path" env-required:"true"`
 	HTTPServer  `yaml:"http_server"`
 }
@@ -36,6 +37,7 @@ func MustLoad() *Config {
 
 	configRaw, err := os.ReadFile(configPath)
 	util.CheckError(err)
+	json.Unmarshal([]byte(configRaw), &cfg)
 
 	return &cfg
 }
