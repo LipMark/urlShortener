@@ -4,6 +4,8 @@ import (
 	"log"
 	"os"
 	"time"
+
+	"github.com/LipMark/url-shortener/util"
 )
 
 type Config struct {
