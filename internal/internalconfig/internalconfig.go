@@ -4,8 +4,6 @@ import (
 	"log"
 	"os"
 	"time"
-
-	"github.com/ilyakaznacheev/cleanenv"
 )
 
 type Config struct {
@@ -34,9 +32,8 @@ func MustLoad() *Config {
 
 	var cfg Config
 
-	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
-		log.Fatalf("cannot read config: %s", err)
-	}
+	configRaw, err := os.ReadFile(configPath)
+	util.CheckError(err)
 
 	return &cfg
 }
