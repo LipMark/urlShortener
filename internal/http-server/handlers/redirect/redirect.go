@@ -14,6 +14,7 @@ import (
 	"github.com/go-chi/render"
 )
 
+// NewRedirect is used to redirect user to an existing db entry, if it is already present
 func NewRedirect(log *slog.Logger, urlGetter handlers.URLGetter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const redirecter = "handlers.redirect.NewRedirect"

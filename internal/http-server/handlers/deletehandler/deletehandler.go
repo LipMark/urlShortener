@@ -15,6 +15,7 @@ import (
 	"github.com/go-chi/render"
 )
 
+// NewDelete exec deletion of a db entry using given id
 func NewDelete(log *slog.Logger, deleter handlers.URLDeleter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const errDeleter = "handlers.deletehandler.NewDelete"

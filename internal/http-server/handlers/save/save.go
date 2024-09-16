@@ -37,6 +37,7 @@ func ValidationError(errs validator.ValidationErrors) string {
 	return strings.Join(errMsgs, ", ")
 }
 
+// NewSave makes a new entry in DB
 func NewSave(log *slog.Logger, urlSaver handlers.URLSaver) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const saver = "handlers.save.save.NewSave"
