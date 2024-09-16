@@ -1,11 +1,15 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"log/slog"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"urlShortener/internal/cfgmodels"
 	"urlShortener/internal/http-server/handlers/deletehandler"
@@ -33,6 +37,7 @@ func main() {
 	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
 
 	storage, err := sqlite.CreateStorage(cfg.StoragePath)
+
 	if err != nil {
 		log.Error("failed to init storage", util.SlogErr(err))
 		os.Exit(1)
@@ -56,7 +61,8 @@ func main() {
 	router.Post("/url", save.NewSave(log, storage))
 	router.Get("/{alias}", redirect.NewRedirect(log, storage))
 
-	log.Info("start me", slog.String("address", cfg.Address))
+	done := make(chan os.Signal, 1)
+	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
 	srv := &http.Server{
 		Addr:         cfg.Address,
@@ -65,10 +71,23 @@ func main() {
 		WriteTimeout: cfg.HTTPServer.Timeout,
 		IdleTimeout:  cfg.HTTPServer.IdleTimeout,
 	}
-	fmt.Println("I work")
-	if err := srv.ListenAndServe(); err != nil {
-		log.Error("failed to start srv")
-	}
-	log.Error("server stopped")
 
+	go func() {
+		fmt.Println("Server started on port", 8080)
+		if err := srv.ListenAndServe(); err != nil {
+			fmt.Printf("listen:%s\n", err)
+		}
+	}()
+	<-done
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Error("failed to stop server", util.SlogErr(err))
+
+		return
+	}
+
+	fmt.Println("server stopped")
 }
