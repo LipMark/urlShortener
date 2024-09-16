@@ -22,3 +22,8 @@ type URLSaver interface {
 type URLGetter interface {
 	GetURL(alias string) (string, error)
 }
+
+// URLDeleter is an interface for deleting url by id.
+type URLDeleter interface {
+	DeleteURL(id string) error
+}
