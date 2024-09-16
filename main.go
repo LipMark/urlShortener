@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"urlShortener/internal/cfgmodels"
+	"urlShortener/internal/http-server/handlers/redirect"
 	"urlShortener/internal/http-server/handlers/save"
 	"urlShortener/internal/storage/sqlite"
 	"urlShortener/util"
@@ -43,6 +44,7 @@ func main() {
 	router.Use(middleware.URLFormat)
 
 	router.Post("/url", save.NewSave(log, storage))
+	router.Get("/{alias}", redirect.NewRedirect(log, storage))
 
 	log.Info("start me", slog.String("address", cfg.Address))
 

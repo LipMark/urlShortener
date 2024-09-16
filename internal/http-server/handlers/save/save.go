@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 
+	"urlShortener/internal/http-server/handlers"
 	"urlShortener/internal/random"
 	"urlShortener/internal/storage"
 	"urlShortener/util"
@@ -18,24 +19,6 @@ import (
 )
 
 const customAliasLength = 6
-
-// Request describes request to the server. validate is used to check if url is present
-type Request struct {
-	URL   string `json:"url" validate:"required,url"`
-	Alias string `json:"alias,omitempty"`
-}
-
-// Response describes server response
-type Response struct {
-	Status string `json:"status"`
-	Error  string `json:"error,omitempty"`
-	Alias  string `json:"alias,omitempty"`
-}
-
-//go:generate go run github.com/vektra/mockery/v2@v2.28.2 --name=URLSaver
-type URLSaver interface {
-	SaveURL(urlToSave string, alias string) (int64, error)
-}
 
 // ValidationError checks given request and returns it in a more readable format
 func ValidationError(errs validator.ValidationErrors) string {
@@ -54,23 +37,23 @@ func ValidationError(errs validator.ValidationErrors) string {
 	return strings.Join(errMsgs, ", ")
 }
 
-func NewSave(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
+func NewSave(log *slog.Logger, urlSaver handlers.URLSaver) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		const saver = "handlers.save.NewSave"
+		const saver = "handlers.save.save.NewSave"
 
 		log := log.With(
 			slog.String("saver", saver),
 			slog.String("request_id", middleware.GetReqID(r.Context())),
 		)
 
-		var req Request
+		var req handlers.Request
 
 		err := render.DecodeJSON(r.Body, &req)
 
 		if errors.Is(err, io.EOF) {
 			log.Error("request body is empty")
 
-			render.JSON(w, r, Response{
+			render.JSON(w, r, handlers.Response{
 				Status: "renderError",
 				Error:  "empty request",
 			})
@@ -80,7 +63,7 @@ func NewSave(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 		if err != nil {
 			log.Error("failed to decode request body", util.SlogErr(err))
 
-			render.JSON(w, r, Response{
+			render.JSON(w, r, handlers.Response{
 				Status: "renderError",
 				Error:  "failed to decode",
 			})
@@ -124,7 +107,7 @@ func NewSave(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 
 		log.Info("url added", slog.Int64("id", id))
 
-		render.JSON(w, r, Response{
+		render.JSON(w, r, handlers.Response{
 			Status: "OK",
 			Alias:  alias,
 		})
