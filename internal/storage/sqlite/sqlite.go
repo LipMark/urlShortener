@@ -13,6 +13,7 @@ type Storage struct {
 	db *sql.DB
 }
 
+// CreateStorage create a new storage for data entries
 func CreateStorage(storagePath string) (*Storage, error) {
 	const errstring = "storage.sqlite.New"
 
@@ -40,6 +41,7 @@ func CreateStorage(storagePath string) (*Storage, error) {
 	return &Storage{db: db}, nil
 }
 
+// SaveURL - add an entry into DB
 func (s *Storage) SaveURL(originalURL string, alias string) (int64, error) {
 	const errstringSaveURL = "storage.sqlite.SaveURL"
 
@@ -65,6 +67,7 @@ func (s *Storage) SaveURL(originalURL string, alias string) (int64, error) {
 	return id, nil
 }
 
+// GetURL - get an entry from DB
 func (s *Storage) GetURL(alias string) (string, error) {
 	const errstringGetURL = "storage.sqlite.GetURL"
 
@@ -87,6 +90,7 @@ func (s *Storage) GetURL(alias string) (string, error) {
 	return resURL, nil
 }
 
+// DeleteURL - delete an entry in DB
 func (s *Storage) DeleteURL(alias string) error {
 	const errstringDeleteURL = "storage.sqlite.DeleteURL"
 	stmt, err := s.db.Prepare("DELETE FROM url WHERE urlalias = ?")
