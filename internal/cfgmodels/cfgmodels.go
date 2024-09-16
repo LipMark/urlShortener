@@ -1,16 +1,15 @@
-package internal
+package cfgmodels
 
 import (
-	"encoding/json"
 	"log"
 	"os"
 	"time"
 
-	"urlShortener/util"
+	"github.com/ilyakaznacheev/cleanenv"
 )
 
 type Config struct {
-	Env         string `yaml:"env" env-default:"local" env-required:"true"`
+	Env         string `yaml:"env" env-default:"local"`
 	StoragePath string `yaml:"storage_path" env-required:"true"`
 	HTTPServer  `yaml:"http_server"`
 }
@@ -20,11 +19,11 @@ type HTTPServer struct {
 	Timeout     time.Duration `yaml:"timeout" env-default:"10s"`
 	IdleTimeout time.Duration `yaml:"idle_timeout" env-default:"120s"`
 	User        string        `yaml:"user" env-required:"true"`
-	Password    string        `yaml:"password" env-required:"true" env:"HTTP_SERVER_PASSWORD"`
 }
 
-func MustLoad() *Config {
+func ConfigSetUp() *Config {
 	configPath := os.Getenv("CONFIG_PATH")
+
 	if configPath == "" {
 		log.Fatal("missing path to config")
 	}
@@ -35,9 +34,9 @@ func MustLoad() *Config {
 
 	var cfg Config
 
-	configRaw, err := os.ReadFile(configPath)
-	util.CheckError(err)
-	json.Unmarshal([]byte(configRaw), &cfg)
+	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
+		log.Fatalf("cannot read config: %s", err)
+	}
 
 	return &cfg
 }
